@@ -2,17 +2,23 @@
 
 namespace App\Entity;
 
-use App\Enum\CourseType;
 use App\Repository\RecipeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use App\Entity\Traits\Timestampable;
+use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
+#[ApiResource()]
+#[ORM\HasLifecycleCallbacks]
 class Recipe
 {
+    use Timestampable;
+    
+    #[Groups(['planning:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,9 +33,6 @@ class Recipe
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
-
-    #[ORM\Column(enumType: CourseType::class)]
-    private ?CourseType $courseType = null;
 
     /**
      * @var Collection<int, PlanningRecipe>
@@ -86,18 +89,6 @@ class Recipe
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function getCourseType(): ?CourseType
-    {
-        return $this->courseType;
-    }
-
-    public function setCourseType(CourseType $courseType): static
-    {
-        $this->courseType = $courseType;
 
         return $this;
     }

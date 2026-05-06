@@ -7,32 +7,38 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\Timestampable;
+use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: IngredientRepository::class)]
+#[ApiResource()]
+#[ORM\HasLifecycleCallbacks]
 class Ingredient
 {
+    use Timestampable;
+
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ingredientPicture = null;
 
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $barcode = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
 
     /**
      * @var Collection<int, RecipeIngredient>
@@ -43,13 +49,21 @@ class Ingredient
     /**
      * @var Collection<int, IngredientShop>
      */
+    #[Groups(['planning:read:collection'])]
     #[ORM\OneToMany(targetEntity: IngredientShop::class, mappedBy: 'ingredient', orphanRemoval: true)]
     private Collection $ingredientShops;
+
+    /**
+     * @var Collection<int, ShoppingListItem>
+     */
+    #[ORM\OneToMany(targetEntity: ShoppingListItem::class, mappedBy: 'ingredient')]
+    private Collection $shoppingListItems;
 
     public function __construct()
     {
         $this->recipeIngredients = new ArrayCollection();
         $this->ingredientShops = new ArrayCollection();
+        $this->shoppingListItems = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -101,30 +115,6 @@ class Ingredient
     public function setBarcode(?string $barcode): static
     {
         $this->barcode = $barcode;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
 
         return $this;
     }
@@ -188,4 +178,35 @@ class Ingredient
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, ShoppingListItem>
+     */
+    public function getShoppingListItems(): Collection
+    {
+        return $this->shoppingListItems;
+    }
+
+    public function addShoppingListItem(ShoppingListItem $shoppingListItem): static
+    {
+        if (!$this->shoppingListItems->contains($shoppingListItem)) {
+            $this->shoppingListItems->add($shoppingListItem);
+            $shoppingListItem->setIngredient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShoppingListItem(ShoppingListItem $shoppingListItem): static
+    {
+        if ($this->shoppingListItems->removeElement($shoppingListItem)) {
+            // set the owning side to null (unless already changed)
+            if ($shoppingListItem->getIngredient() === $this) {
+                $shoppingListItem->setIngredient(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

@@ -5,15 +5,24 @@ namespace App\Entity;
 use App\Repository\IngredientShopRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\Timestampable;
+use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: IngredientShopRepository::class)]
+#[ApiResource()]
+#[ORM\HasLifecycleCallbacks]
 class IngredientShop
 {
+    use Timestampable;
+
+    #[Groups(['planning:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
 
@@ -21,6 +30,7 @@ class IngredientShop
     #[ORM\JoinColumn(nullable: false)]
     private ?Ingredient $ingredient = null;
 
+    #[Groups(['planning:read:collection'])]
     #[ORM\ManyToOne(inversedBy: 'ingredientShops')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Shop $shop = null;

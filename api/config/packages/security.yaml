@@ -21,7 +21,6 @@ security:
             pattern: ^/api
             stateless: true
             provider: app_user_provider
-
             entry_point: jwt
 
             # Login via Lexik JWT
@@ -53,6 +52,7 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

@@ -1,0 +1,24 @@
+POST
+/api/planning_recipes
+accept: application/ld+json
+Content-Type: application/ld+json
+{
+  "weekNumber": 32,
+  "year": 2028,
+  "user": "/api/users/37"
+}
+
+===========================================================================
+
+POST
+/api/planning_recipes
+accept: application/ld+json
+Content-Type: application/ld+json
+
+{
+  "timeOfDay": "breakfast",
+  "planning": "/api/plannings/13",
+  "recipe": "/api/recipes/20",
+  "dayOfWeek": "monday",
+  "mealType": "starter"
+}

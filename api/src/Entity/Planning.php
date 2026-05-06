@@ -2,51 +2,56 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Repository\PlanningRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use ApiPlatform\Metadata\QueryParameter;
+use App\Entity\Traits\Timestampable;
+use App\Attribute\CurrentUser;
 
+#[CurrentUser]
 #[ORM\Entity(repositoryClass: PlanningRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(
-            //security: "is_granted('ROLE_USER')",
-            normalizationContext: ['groups' => ['planning:read:collection']], 
+        new Post(
+            denormalizationContext: ['groups' => ['planning:write:item']]
         ),
-    ],
-
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['planning:read:collection']],
+        ),
+    ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['user' => 'exact'])]
+#[ApiFilter(ExistsFilter::class, properties: ['planningRecipes'])]
+#[ORM\HasLifecycleCallbacks]
 class Planning
 {
+    use Timestampable;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['planning:read:collection'])]
+    #[Groups(['planning:read:collection', 'planning:write:item'])]
     #[ORM\Column]
     private ?int $weekNumber = null;
 
-    #[Groups(['planning:read:collection'])]
+    #[Groups(['planning:read:collection', 'planning:write:item'])]
     #[ORM\Column]
     private ?int $year = null;
 
+    #[Groups(['planning:write:item'])]
     #[ORM\ManyToOne(inversedBy: 'planning')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
 
     /**
      * @var Collection<int, PlanningRecipe>
@@ -55,11 +60,20 @@ class Planning
     #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'planning')]
     private Collection $planningRecipes;
 
+    /**
+     * @var Collection<int, ShoppingList>
+     */
+    #[Groups(['planning:read:collection'])]
+    #[ORM\OneToMany(targetEntity: ShoppingList::class, mappedBy: 'planning')]
+    private Collection $shoppingLists;
+
     public function __construct()
     {
         $this->planningRecipes = new ArrayCollection();
+        $this->shoppingLists = new ArrayCollection();
     }
 
+    #[Groups(['planning:read:collection'])]
     public function getId(): ?int
     {
         return $this->id;
@@ -101,30 +115,6 @@ class Planning
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, PlanningRecipe>
      */
@@ -149,6 +139,36 @@ class Planning
             // set the owning side to null (unless already changed)
             if ($planningRecipe->getPlanning() === $this) {
                 $planningRecipe->setPlanning(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ShoppingList>
+     */
+    public function getShoppingLists(): Collection
+    {
+        return $this->shoppingLists;
+    }
+
+    public function addShoppingList(ShoppingList $shoppingList): static
+    {
+        if (!$this->shoppingLists->contains($shoppingList)) {
+            $this->shoppingLists->add($shoppingList);
+            $shoppingList->setPlanning($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShoppingList(ShoppingList $shoppingList): static
+    {
+        if ($this->shoppingLists->removeElement($shoppingList)) {
+            // set the owning side to null (unless already changed)
+            if ($shoppingList->getPlanning() === $this) {
+                $shoppingList->setPlanning(null);
             }
         }
 

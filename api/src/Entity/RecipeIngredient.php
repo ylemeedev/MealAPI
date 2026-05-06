@@ -4,10 +4,16 @@ namespace App\Entity;
 
 use App\Repository\RecipeIngredientRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\Timestampable;
+use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: RecipeIngredientRepository::class)]
+#[ApiResource()]
+#[ORM\HasLifecycleCallbacks]
 class RecipeIngredient
 {
+    use Timestampable;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

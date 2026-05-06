@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\ApiResource;
@@ -18,6 +17,7 @@ use ApiPlatform\Metadata\Post;
 use App\State\MeProcessor;
 use App\State\MeProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
+use App\Entity\Traits\Timestampable;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -41,9 +41,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     normalizationContext: ['groups' => ['user:read:item']],
 )]
-
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use Timestampable;
+    
     #[Groups(['user:read:item'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -79,13 +81,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $userName = null;
 
     #[Groups(['user:read:item', 'user:write:item'])]
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
-
-    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $dateOfBirth = null;
 
@@ -98,6 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Planning::class, mappedBy: 'user')]
     private Collection $planning;
+
 
     public function __construct()
     {
@@ -217,30 +213,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUserName(?string $userName): static
     {
         $this->userName = $userName;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
 
         return $this;
     }
