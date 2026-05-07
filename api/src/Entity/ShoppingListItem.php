@@ -5,11 +5,19 @@ namespace App\Entity;
 use App\Repository\ShoppingListItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Traits\Timestampable;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ShoppingListItemRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: [
+        new Patch(
+            security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['shoppingListItem:write:item']],
+        )
+    ]
+)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(
     name: "uniq_shopping_item",
@@ -42,7 +50,7 @@ class ShoppingListItem
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $unit = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
+    #[Groups(['planning:read:collection', 'shoppingList:read:collection', 'shoppingListItem:write:item'])]
     #[ORM\Column]
     private ?bool $isChecked = null;
 

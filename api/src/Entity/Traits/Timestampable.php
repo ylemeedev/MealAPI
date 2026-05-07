@@ -10,14 +10,16 @@ trait Timestampable
 {
     #[Groups([
         'planning:read:collection',
-        'planningRecipe:read:collection'
+        'planningRecipe:read:collection',
+        'shoppingList:read:collection'
     ])]
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[Groups([
         'planning:read:collection',
-        'planningRecipe:read:collection'
+        'planningRecipe:read:collection',
+        'shoppingList:read:collection'
     ])]
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;

@@ -12,13 +12,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 
+
 #[ORM\Entity(repositoryClass: ShoppingListRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(
+        new Get(
             security: "is_granted('ROLE_USER')",
             normalizationContext: ['groups' => ['shoppingList:read:collection']],
-        ),
+        )
     ],
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -45,7 +46,7 @@ class ShoppingList
     private Collection $shoppingListItems;
 
     #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255)]
     private ?string $name = null;
 
     #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
