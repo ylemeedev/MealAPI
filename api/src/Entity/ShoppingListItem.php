@@ -2,9 +2,12 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\ShoppingListItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use App\Entity\Traits\Timestampable;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -13,21 +16,26 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Patch(
-            security: "is_granted('ROLE_USER')",
+            /* security: "is_granted('ROLE_USER')", */
             normalizationContext: ['groups' => ['shoppingListItem:write:item']],
-        )
+        ),
+        new GetCollection(
+            /* security: "is_granted('ROLE_USER')", */
+            uriTemplate: '/my_shopping_list_item',
+            filters: ['my_shopping_list_item_filter']
+        ),
+
+        /* new GetCollection(
+            uriTemplate: '/admin/shopping_list_items',
+            security: "is_granted('ROLE_ADMIN')"
+        ) */
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
-#[ORM\UniqueConstraint(
-    name: "uniq_shopping_item",
-    columns: ["shopping_list_id", "ingredient_id", "unit"]
-)]
 class ShoppingListItem
 {
     use Timestampable;
-    
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -35,40 +43,25 @@ class ShoppingListItem
 
     #[ORM\ManyToOne(inversedBy: 'shoppingListItems')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?ShoppingList $shoppingList = null;
-
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
-    #[ORM\ManyToOne(inversedBy: 'shoppingListItems')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Ingredient $ingredient = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(nullable: true)]
     private ?float $quantity = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $unit = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection', 'shoppingListItem:write:item'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column]
     private ?bool $isChecked = null;
+
+    #[ORM\ManyToOne(inversedBy: 'shoppingListItems')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?shoppingList $shoppingList = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getShoppingList(): ?ShoppingList
-    {
-        return $this->shoppingList;
-    }
-
-    public function setShoppingList(?ShoppingList $shoppingList): static
-    {
-        $this->shoppingList = $shoppingList;
-
-        return $this;
     }
 
     public function getIngredient(): ?Ingredient
@@ -119,4 +112,15 @@ class ShoppingListItem
         return $this;
     }
 
+    public function getShoppingList(): ?shoppingList
+    {
+        return $this->shoppingList;
+    }
+
+    public function setShoppingList(?shoppingList $shoppingList): static
+    {
+        $this->shoppingList = $shoppingList;
+
+        return $this;
+    }
 }

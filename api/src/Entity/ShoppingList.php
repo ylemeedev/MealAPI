@@ -3,55 +3,39 @@
 namespace App\Entity;
 
 use App\Repository\ShoppingListRepository;
+use BcMath\Number;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\ApiResource;
-use App\Entity\Traits\Timestampable;
-use Symfony\Component\Serializer\Attribute\Groups;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-
 
 #[ORM\Entity(repositoryClass: ShoppingListRepository::class)]
-#[ApiResource(
-    operations: [
-        new Get(
-            security: "is_granted('ROLE_USER')",
-            normalizationContext: ['groups' => ['shoppingList:read:collection']],
-        )
-    ],
-)]
-#[ORM\HasLifecycleCallbacks]
-#[ORM\UniqueConstraint(name: "uniq_planning_shopping_list", columns: ["planning_id"])]
 class ShoppingList
 {
-    use Timestampable;
-
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'shoppingLists')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Planning $planning = null;
-
     /**
      * @var Collection<int, ShoppingListItem>
      */
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
-    #[ORM\OneToMany(targetEntity: ShoppingListItem::class, mappedBy: 'shoppingList')]
+    #[ORM\OneToMany(targetEntity: ShoppingListItem::class, mappedBy: 'shoppingList', orphanRemoval: true)]
     private Collection $shoppingListItems;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    #[ORM\Column]
+    private ?int $weekNumber = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
-    #[ORM\Column(nullable: true)]
-    private ?float $budget = null;
+    #[ORM\Column]
+    private ?int $year = null;
+
+    #[ORM\ManyToOne(inversedBy: 'shoppingLists')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(inversedBy: 'shoppingLists')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Planning $planning = null;
 
     public function __construct()
     {
@@ -61,18 +45,6 @@ class ShoppingList
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getPlanning(): ?Planning
-    {
-        return $this->planning;
-    }
-
-    public function setPlanning(?Planning $planning): static
-    {
-        $this->planning = $planning;
-
-        return $this;
     }
 
     /**
@@ -105,26 +77,50 @@ class ShoppingList
         return $this;
     }
 
-    public function getName(): ?string
+    public function getWeekNumber(): ?int
     {
-        return $this->name;
+        return $this->weekNumber;
     }
 
-    public function setName(?string $name): static
+    public function setWeekNumber(int $weekNumber): static
     {
-        $this->name = $name;
+        $this->weekNumber = $weekNumber;
 
         return $this;
     }
 
-    public function getBudget(): ?float
+    public function getYear(): ?int
     {
-        return $this->budget;
+        return $this->year;
     }
 
-    public function setBudget(?float $budget): static
+    public function setYear(int $year): static
     {
-        $this->budget = $budget;
+        $this->year = $year;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getPlanning(): ?Planning
+    {
+        return $this->planning;
+    }
+
+    public function setPlanning(?Planning $planning): static
+    {
+        $this->planning = $planning;
 
         return $this;
     }

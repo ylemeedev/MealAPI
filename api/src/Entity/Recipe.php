@@ -12,37 +12,37 @@ use App\Entity\Traits\Timestampable;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: []
+)]
 #[ORM\HasLifecycleCallbacks]
 class Recipe
 {
     use Timestampable;
     
-    #[Groups(['planning:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['planning:read:collection'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
-
+    
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $recipePicture = null;
-
+    
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
-
+    
     /**
      * @var Collection<int, PlanningRecipe>
-     */
+    */
     #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'recipe')]
     private Collection $planningRecipes;
-
+    
     /**
      * @var Collection<int, RecipeIngredient>
-     */
+    */
     #[ORM\OneToMany(targetEntity: RecipeIngredient::class, mappedBy: 'recipe', orphanRemoval: true)]
     private Collection $recipeIngredients;
 

@@ -2,11 +2,9 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use App\Repository\PlanningRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,35 +18,36 @@ use App\Attribute\CurrentUser;
 #[ORM\Entity(repositoryClass: PlanningRepository::class)]
 #[ApiResource(
     operations: [
-        new Post(
-            denormalizationContext: ['groups' => ['planning:write:item']]
-        ),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
+            uriTemplate: "/my_plannings",
+            filters: ['my_plannings_exists_filter'],
             normalizationContext: ['groups' => ['planning:read:collection']],
         ),
+        /* new Get(
+            security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['planning:read:item']],
+        ) */
     ]
 )]
-#[ApiFilter(ExistsFilter::class, properties: ['planningRecipes'])]
 #[ORM\HasLifecycleCallbacks]
 class Planning
 {
     use Timestampable;
-    
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['planning:read:collection', 'planning:write:item'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column]
     private ?int $weekNumber = null;
 
-    #[Groups(['planning:read:collection', 'planning:write:item'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column]
     private ?int $year = null;
 
-    #[Groups(['planning:write:item'])]
     #[ORM\ManyToOne(inversedBy: 'planning')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -56,15 +55,17 @@ class Planning
     /**
      * @var Collection<int, PlanningRecipe>
      */
-    #[Groups(['planning:read:collection'])]
     #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'planning')]
     private Collection $planningRecipes;
+
+    #[Groups(['planning:read:collection'])]
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
 
     /**
      * @var Collection<int, ShoppingList>
      */
-    #[Groups(['planning:read:collection'])]
-    #[ORM\OneToMany(targetEntity: ShoppingList::class, mappedBy: 'planning')]
+    #[ORM\OneToMany(targetEntity: ShoppingList::class, mappedBy: 'planning', orphanRemoval: true)]
     private Collection $shoppingLists;
 
     public function __construct()
@@ -73,7 +74,6 @@ class Planning
         $this->shoppingLists = new ArrayCollection();
     }
 
-    #[Groups(['planning:read:collection'])]
     public function getId(): ?int
     {
         return $this->id;
@@ -141,6 +141,18 @@ class Planning
                 $planningRecipe->setPlanning(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
 
         return $this;
     }

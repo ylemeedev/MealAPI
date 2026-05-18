@@ -9,17 +9,13 @@ use Doctrine\ORM\Mapping as ORM;
 trait Timestampable
 {
     #[Groups([
-        'planning:read:collection',
-        'planningRecipe:read:collection',
-        'shoppingList:read:collection'
+        'planning:read:collection'
     ])]
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[Groups([
-        'planning:read:collection',
-        'planningRecipe:read:collection',
-        'shoppingList:read:collection'
+        'planning:read:collection'
     ])]
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;

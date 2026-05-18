@@ -23,7 +23,6 @@ use App\Entity\Traits\Timestampable;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
     operations: [
-        new GetCollection(),
         new Get(),
         new Get(
             uriTemplate: '/me',
@@ -94,10 +93,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Planning::class, mappedBy: 'user')]
     private Collection $planning;
 
+    /**
+     * @var Collection<int, ShoppingList>
+     */
+    #[ORM\OneToMany(targetEntity: ShoppingList::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $shoppingLists;
 
     public function __construct()
     {
-        $this->planning = new ArrayCollection();
+        $this->shoppingLists = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -265,6 +269,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($planning->getUser() === $this) {
                 $planning->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ShoppingList>
+     */
+    public function getShoppingLists(): Collection
+    {
+        return $this->shoppingLists;
+    }
+
+    public function addShoppingList(ShoppingList $shoppingList): static
+    {
+        if (!$this->shoppingLists->contains($shoppingList)) {
+            $this->shoppingLists->add($shoppingList);
+            $shoppingList->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShoppingList(ShoppingList $shoppingList): static
+    {
+        if ($this->shoppingLists->removeElement($shoppingList)) {
+            // set the owning side to null (unless already changed)
+            if ($shoppingList->getUser() === $this) {
+                $shoppingList->setUser(null);
             }
         }
 

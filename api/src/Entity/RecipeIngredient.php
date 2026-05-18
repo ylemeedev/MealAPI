@@ -6,9 +6,12 @@ use App\Repository\RecipeIngredientRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Traits\Timestampable;
 use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RecipeIngredientRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: []
+)]
 #[ORM\HasLifecycleCallbacks]
 class RecipeIngredient
 {
@@ -21,14 +24,14 @@ class RecipeIngredient
 
     #[ORM\Column(nullable: true)]
     private ?float $quantity = null;
-
+    
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $unit = null;
-
+    
     #[ORM\ManyToOne(inversedBy: 'recipeIngredients')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Recipe $recipe = null;
-
+    
     #[ORM\ManyToOne(inversedBy: 'recipeIngredients')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Ingredient $ingredient = null;

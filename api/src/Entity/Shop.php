@@ -11,7 +11,9 @@ use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ShopRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: []
+)]
 #[ORM\HasLifecycleCallbacks]
 class Shop
 {

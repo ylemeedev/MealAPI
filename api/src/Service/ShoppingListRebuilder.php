@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\Planning;
-use App\Entity\ShoppingList;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ShoppingListRebuilder
@@ -16,33 +15,48 @@ class ShoppingListRebuilder
     {
         $conn = $this->em->getConnection();
 
-        // 1. récupérer ou créer la shopping list
-        $shoppingList = $this->em->getRepository(ShoppingList::class)
-            ->findOneBy(['planning' => $planning]);
-
-        if (!$shoppingList) {
-            $shoppingList = new ShoppingList();
-            $shoppingList->setPlanning($planning);
-
-            $this->em->persist($shoppingList);
-            $this->em->flush(); // important pour avoir l'id
-        }
-
         $conn->beginTransaction();
 
         try {
+            // 1. récupérer ou créer la shopping list liée à la semaine
+            $shoppingListId = $conn->fetchOne("
+                SELECT id
+                FROM shopping_list
+                WHERE week_number = :week
+                  AND year = :year
+                  AND user_id = :user
+                LIMIT 1
+            ", [
+                'week' => $planning->getWeekNumber(),
+                'year' => $planning->getYear(),
+                'user' => $planning->getUser()->getId(),
+            ]);
+
+            if (!$shoppingListId) {
+                $conn->executeStatement("
+                    INSERT INTO shopping_list (week_number, year, user_id)
+                    VALUES (:week, :year, :user)
+                ", [
+                    'week' => $planning->getWeekNumber(),
+                    'year' => $planning->getYear(),
+                    'user' => $planning->getUser()->getId(),
+                ]);
+
+                $shoppingListId = $conn->lastInsertId();
+            }
+
             // 2. reset items
             $conn->executeStatement("
                 DELETE FROM shopping_list_item
-                WHERE shopping_list_id = :id
+                WHERE shopping_list_id = :list
             ", [
-                'id' => $shoppingList->getId()
+                'list' => $shoppingListId
             ]);
 
-            // 3. rebuild + fusion ingrédients
+            // 3. rebuild items depuis planning_recipe
             $conn->executeStatement("
                 INSERT INTO shopping_list_item
-                (quantity, unit, is_checked, updated_at, created_at, shopping_list_id, ingredient_id)
+                (quantity, unit, is_checked, created_at, updated_at, ingredient_id, shopping_list_id)
 
                 SELECT
                     SUM(ri.quantity) AS quantity,
@@ -50,18 +64,17 @@ class ShoppingListRebuilder
                     0,
                     NOW(),
                     NOW(),
-                    sl.id,
-                    ri.ingredient_id
+                    ri.ingredient_id,
+                    :list
 
-                FROM shopping_list sl
-                JOIN planning_recipe pr ON pr.planning_id = sl.planning_id
+                FROM planning_recipe pr
                 JOIN recipe_ingredient ri ON ri.recipe_id = pr.recipe_id
+                WHERE pr.planning_id = :planning
 
-                WHERE sl.id = :id
-
-                GROUP BY sl.id, ri.ingredient_id, ri.unit
+                GROUP BY ri.ingredient_id, ri.unit
             ", [
-                'id' => $shoppingList->getId()
+                'planning' => $planning->getId(),
+                'list' => $shoppingListId
             ]);
 
             $conn->commit();

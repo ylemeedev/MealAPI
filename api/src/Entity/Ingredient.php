@@ -12,31 +12,28 @@ use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: IngredientRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: []
+)]
 #[ORM\HasLifecycleCallbacks]
 class Ingredient
 {
     use Timestampable;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ingredientPicture = null;
 
-    #[Groups(['planning:read:collection', 'shoppingList:read:collection'])]
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $barcode = null;
 
@@ -208,5 +205,4 @@ class Ingredient
 
         return $this;
     }
-
 }

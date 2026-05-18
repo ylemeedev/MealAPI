@@ -27,6 +27,27 @@ services:
         tags:
             - { name: api_platform.doctrine.orm.query_extension.collection }
             - { name: api_platform.doctrine.orm.query_extension.item }
+
             
+    # Filtre les items de "ShoppingListItem" via "shoppingListId"
+    my_shopping_list_item_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments:
+            $properties:
+                planning: 'exact'
+                # isChecked: 'exact'
+        tags: [ 'api_platform.filter' ]    
+  
+
+    # Filtre les items de "plannings" qui ont au moins un "planningRecipe" (relation non vide)
+    my_plannings_exists_filter:
+        parent: 'api_platform.doctrine.orm.exists_filter'
+        arguments:
+            $properties: 
+                planningRecipes: ~
+        tags: [ 'api_platform.filter' ]    
+
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
