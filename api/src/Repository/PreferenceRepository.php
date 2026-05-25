@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\ShoppingListItem;
+use App\Entity\Preference;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ShoppingListItem>
+ * @extends ServiceEntityRepository<Preference>
  */
-class ShoppingListItemRepository extends ServiceEntityRepository
+class PreferenceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ShoppingListItem::class);
+        parent::__construct($registry, Preference::class);
     }
 
     //    /**
-    //     * @return ShoppingListItem[] Returns an array of ShoppingListItem objects
+    //     * @return Preference[] Returns an array of Preference objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
+    //            ->orderBy('p.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ShoppingListItem
+    //    public function findOneBySomeField($value): ?Preference
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

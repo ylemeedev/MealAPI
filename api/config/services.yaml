@@ -34,8 +34,7 @@ services:
         parent: 'api_platform.doctrine.orm.search_filter'
         arguments:
             $properties:
-                planning: 'exact'
-                # isChecked: 'exact'
+                shoppingList: 'exact'
         tags: [ 'api_platform.filter' ]    
   
 

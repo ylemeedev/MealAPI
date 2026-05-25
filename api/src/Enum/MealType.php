@@ -2,9 +2,9 @@
 
 namespace App\Enum;
 
-enum RecipeType: string
+enum MealType: string
 {
     case STARTER = 'starter';
-    case MAIN_COURSE = 'mainCourse';
+    case MAIN = 'main';
     case DESSERT = 'dessert';
 }

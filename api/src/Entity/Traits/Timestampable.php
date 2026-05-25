@@ -8,15 +8,15 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait Timestampable
 {
-    #[Groups([
+    /*     #[Groups([
         'planning:read:collection'
-    ])]
+    ])] */
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[Groups([
+    /*     #[Groups([
         'planning:read:collection'
-    ])]
+    ])] */
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 

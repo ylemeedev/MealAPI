@@ -18,4 +18,10 @@
 /api.vscode/
 /api/migrations/
 
+/api/.env
+/api/.env.dev
 
+
+api/.env
+api/.history/
+api/.env.dev

@@ -94,14 +94,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $planning;
 
     /**
-     * @var Collection<int, ShoppingList>
+     * @var Collection<int, UserPreference>
      */
-    #[ORM\OneToMany(targetEntity: ShoppingList::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $shoppingLists;
+    #[ORM\OneToMany(targetEntity: UserPreference::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $userPreferences;
 
     public function __construct()
     {
-        $this->shoppingLists = new ArrayCollection();
+        $this->userPreferences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -276,29 +276,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, ShoppingList>
+     * @return Collection<int, UserPreference>
      */
-    public function getShoppingLists(): Collection
+    public function getUserPreferences(): Collection
     {
-        return $this->shoppingLists;
+        return $this->userPreferences;
     }
 
-    public function addShoppingList(ShoppingList $shoppingList): static
+    public function addUserPreference(UserPreference $userPreference): static
     {
-        if (!$this->shoppingLists->contains($shoppingList)) {
-            $this->shoppingLists->add($shoppingList);
-            $shoppingList->setUser($this);
+        if (!$this->userPreferences->contains($userPreference)) {
+            $this->userPreferences->add($userPreference);
+            $userPreference->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeShoppingList(ShoppingList $shoppingList): static
+    public function removeUserPreference(UserPreference $userPreference): static
     {
-        if ($this->shoppingLists->removeElement($shoppingList)) {
+        if ($this->userPreferences->removeElement($userPreference)) {
             // set the owning side to null (unless already changed)
-            if ($shoppingList->getUser() === $this) {
-                $shoppingList->setUser(null);
+            if ($userPreference->getUser() === $this) {
+                $userPreference->setUser(null);
             }
         }
 

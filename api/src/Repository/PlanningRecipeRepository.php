@@ -16,6 +16,17 @@ class PlanningRecipeRepository extends ServiceEntityRepository
         parent::__construct($registry, PlanningRecipe::class);
     }
 
+    public function findByPlanning(int $planningId): array
+    {
+        return $this->createQueryBuilder('pr')
+            ->join('pr.recipe', 'r')
+            ->addSelect('r')
+            ->where('pr.planning = :planningId')
+            ->setParameter('planningId', $planningId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return PlanningRecipe[] Returns an array of PlanningRecipe objects
     //     */
