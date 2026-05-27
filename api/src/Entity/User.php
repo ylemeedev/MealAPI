@@ -10,10 +10,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Controller\UpdateUserPreferencesController;
+use App\Dto\UpdateUserPreferencesDto;
 use App\State\MeProcessor;
 use App\State\MeProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -32,11 +33,18 @@ use App\Entity\Traits\Timestampable;
         ),
         new Post(),
         new Patch(
+            //security: "is_granted('ROLE_USER')",
             uriTemplate: '/update_me',
             processor: MeProcessor::class,
             security: "is_granted('ROLE_USER')",
             denormalizationContext: ['groups' => ['user:write:item']]
         ),
+        new Patch(
+            //security: "is_granted('ROLE_USER')",
+            uriTemplate: '/update_preferences',
+            input: UpdateUserPreferencesDto::class,
+            controller: UpdateUserPreferencesController::class,
+        )
     ],
     normalizationContext: ['groups' => ['user:read:item']],
 )]
@@ -96,6 +104,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, UserPreference>
      */
+    #[Groups(['user:read:item'])]
     #[ORM\OneToMany(targetEntity: UserPreference::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $userPreferences;
 

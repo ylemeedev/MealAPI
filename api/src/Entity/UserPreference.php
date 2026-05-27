@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserPreferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserPreferenceRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_user_preference', columns: ['user_id', 'preference_id'])]
@@ -18,6 +19,7 @@ class UserPreference
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[Groups(['user:read:item'])]
     #[ORM\ManyToOne(inversedBy: 'userPreferences')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Preference $preference = null;

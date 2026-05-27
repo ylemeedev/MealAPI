@@ -13,11 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use App\Service\ShoppingListRebuilder;
 
 class PlanningRecipeBulkController extends AbstractController
 {
-
     #[Route('/api/planning-recipes/bulk', methods: ['POST'])]
     public function __invoke(
         Request $request,
@@ -38,40 +36,52 @@ class PlanningRecipeBulkController extends AbstractController
             ], 400);
         }
 
-        if (!isset($items['planningId'])) {
-            return new JsonResponse([
-                'error' => 'Missing planningId'
-            ], 400);
-        }
-
         try {
 
-            // Recherche du planning
-            $planning = $em
-                ->getRepository(Planning::class)
-                ->find($items['planningId']);
+            $planningId = $items['planningId'] ?? null;
 
-            // Si le planning n'existe pas, on le crée
-            if (!$planning) {
+            $planning = null;
+
+            if ($planningId) {
+                $planning = $em
+                    ->getRepository(Planning::class)
+                    ->find($planningId);
+            }
+
+            $isNew = !$planning;
+
+            // CREATE
+            if ($isNew) {
+
+                if (!isset($items['weekNumber']) || !isset($items['year'])) {
+                    return new JsonResponse([
+                        'error' => 'weekNumber and year are required for new planning'
+                    ], 400);
+                }
 
                 $planning = new Planning();
-                $planning->setName('Mon planning');
 
-                $planning->setWeekNumber(
-                    (int) date('W')
+                $planning->setName(
+                    $items['name'] ?? ('Semaine ' . $items['weekNumber'] . ' ' . $items['year'])
                 );
 
-                $planning->setYear(
-                    (int) date('Y')
-                );
+                $planning->setWeekNumber((int) $items['weekNumber']);
+                $planning->setYear((int) $items['year']);
 
-                // User connecté
                 $planning->setUser($this->getUser());
 
                 $em->persist($planning);
             }
 
-            // Suppression des anciennes recettes du planning
+            // UPDATE
+            if (!$isNew) {
+
+                if (isset($items['name'])) {
+                    $planning->setName($items['name']);
+                }
+            }
+
+            // Suppression anciennes recettes
             $existingPlanningRecipes = $em
                 ->getRepository(PlanningRecipe::class)
                 ->findBy([
@@ -82,43 +92,36 @@ class PlanningRecipeBulkController extends AbstractController
                 $em->remove($pr);
             }
 
+            // Création nouvelles relations
             foreach ($items['planning'] as $day => $meals) {
                 foreach ($meals as $timeOfDay => $courses) {
 
                     foreach ($courses as $mealType => $recipeName) {
 
-                        // Recherche recette existante
+                        if (!$recipeName) {
+                            continue;
+                        }
+
                         $recipe = $em
                             ->getRepository(Recipe::class)
                             ->findOneBy([
                                 'name' => $recipeName
                             ]);
 
-                        // Création recette si inexistante
                         if (!$recipe) {
                             $recipe = new Recipe();
                             $recipe->setName($recipeName);
-
                             $em->persist($recipe);
                         }
 
                         $planningRecipe = new PlanningRecipe();
 
                         $planningRecipe->setPlanning($planning);
-
                         $planningRecipe->setRecipe($recipe);
 
-                        $planningRecipe->setDayOfWeek(
-                            DayOfWeek::from($day)
-                        );
-
-                        $planningRecipe->setMealType(
-                            MealType::from($mealType)
-                        );
-
-                        $planningRecipe->setTimeOfDay(
-                            TimeOfDay::from($timeOfDay)
-                        );
+                        $planningRecipe->setDayOfWeek(DayOfWeek::from($day));
+                        $planningRecipe->setMealType(MealType::from($mealType));
+                        $planningRecipe->setTimeOfDay(TimeOfDay::from($timeOfDay));
 
                         $em->persist($planningRecipe);
                     }
@@ -128,10 +131,11 @@ class PlanningRecipeBulkController extends AbstractController
             $em->flush();
 
             return new JsonResponse([
-                'success' => true
+                'success' => true,
+                'planningId' => $planning->getId()
             ]);
-        } catch (\Exception $e) {
 
+        } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage()
             ], 500);
