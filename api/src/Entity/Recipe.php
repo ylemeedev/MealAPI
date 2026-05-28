@@ -10,12 +10,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use App\Entity\Traits\Timestampable;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
 #[ApiResource(
     operations: [
+        new GetCollection(
+            //security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['recipe:read:collection']],
+            paginationItemsPerPage: 10,
+        ),
         new Post(
+            //security: "is_granted('ROLE_USER')",
             denormalizationContext: ['groups' => ['recipe:write:item']]
         )
     ]
@@ -25,20 +32,21 @@ class Recipe
 {
     use Timestampable;
 
+    #[Groups(['recipe:read:collection'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['planningRecipe:write:item'])]
+    #[Groups(['planningRecipe:write:item', 'recipe:read:collection'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
-    
-    #[Groups(['recipe:write:item'])]
+
+    #[Groups(['recipe:write:item', 'recipe:read:collection'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $recipePicture = null;
-    
-    #[Groups(['recipe:write:item'])]
+
+    #[Groups(['recipe:write:item', 'recipe:read:collection'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
